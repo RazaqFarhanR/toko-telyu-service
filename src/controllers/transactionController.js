@@ -7,17 +7,17 @@ export const createTransactionController = async (req, res) => {
   if (!orderId || !amount) return res.status(400).json({ error: "Missing orderId or amount" });
 
   try {
-    // const transaction = await createTransaction({ orderId, amount, customerName, customerEmail });
-    // console.log(transaction.token, transaction.redirect_url);
+    const transaction = await createTransaction({ orderId, amount, customerName, customerEmail });
+    console.log(transaction.token, transaction.redirect_url);
 
-    // res.status(200).json({ 
-    //   transactionToken: transaction.token,
-    //   redirectUrl: transaction.redirect_url 
-    // });
     res.status(200).json({ 
-      transactionToken: "fdaa08d8-e263-4032-ab38-facefd874336",
-      redirectUrl: "https://app.sandbox.midtrans.com/snap/v4/redirection/fdaa08d8-e263-4032-ab38-facefd874336" 
+      transactionToken: transaction.token,
+      redirectUrl: transaction.redirect_url 
     });
+    // res.status(200).json({ 
+    //   transactionToken: "fdaa08d8-e263-4032-ab38-facefd874336",
+    //   redirectUrl: "https://app.sandbox.midtrans.com/snap/v4/redirection/fdaa08d8-e263-4032-ab38-facefd874336" 
+    // });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Failed to create transaction" });
