@@ -1,22 +1,28 @@
 import admin from "firebase-admin";
-import dotenv from "dotenv";
-dotenv.config();
+import { getMessaging } from "firebase-admin/messaging";
 
-const serviceAccount = {
-  projectId: process.env.FIREBASE_PROJECT_ID,
-  clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-  privateKey: process.env.FIREBASE_PRIVATE_KEY
-    ? process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, "\n")
-    : undefined,
-};
+const base64 = process.env.FIREBASE_ADMIN_BASE64;
 
-if (!serviceAccount.privateKey) {
-  throw new Error("FIREBASE_PRIVATE_KEY is not defined in environment variables");
+if (!base64) {
+  throw new Error("FIREBASE_ADMIN_BASE64 is missing! Please set it in your .env");
 }
 
-admin.initializeApp({
-  credential: admin.credential.cert(serviceAccount),
-});
+// Decode Base64 menjadi JSON object
+let serviceAccount
+
+try {
+  const jsonString = Buffer.from(base64, "base64").toString("utf8");
+  serviceAccount = JSON.parse(jsonString);
+} catch (e) {
+  console.error("Failed to decode FIREBASE_ADMIN_BASE64:", e);
+  throw e;
+}
+
+if (!admin.apps.length) {
+  admin.initializeApp({
+    credential: admin.credential.cert(serviceAccount),
+  });
+}
 
 const firestore = admin.firestore();
 const FieldValue = admin.firestore.FieldValue;

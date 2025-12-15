@@ -33,26 +33,21 @@ export const webhookController = async (req, res) => {
       payment_status: mapMidtransToPaymentStatus(transactionStatus),
     });
 
-    const paymentRef = firestore.collection("payment").doc(orderId);
+    const paymentSnap = await firestore
+      .collection("payment")
+      .where("order_id", "==", orderId)
+      .limit(1)
+      .get();
 
-    await paymentRef.set(
-      {
-        order_id: orderId,
-        payment_method: "midtrans",
+    if (!paymentSnap.empty) {
+      const paymentDoc = paymentSnap.docs[0];
+
+      await paymentDoc.ref.update({
         payment_status: mapMidtransToPaymentStatus(transactionStatus),
-
-        amount: Number(payload.gross_amount) || 0,
         midtrans_transaction_id: payload.transaction_id ?? null,
-        payment_url:
-          payload.redirect_url ??
-          payload.finish_redirect_url ??
-          null,
-
         response_json: payload,
-        updated_at: FieldValue.serverTimestamp(),
-      },
-      { merge: true }
-    );
+      });
+    }
 
     return res.status(200).send("OK");
   } catch (err) {
