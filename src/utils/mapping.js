@@ -5,7 +5,7 @@ export const mapMidtransToTransactionStatus = (midtransStatus) => {
 
     case "capture":
     case "settlement":
-      return "paid"
+      return "pending"
 
     case "deny":
     case "cancel":

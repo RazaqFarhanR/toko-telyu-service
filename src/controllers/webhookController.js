@@ -1,4 +1,4 @@
-import { firestore, FieldValue } from "../services/firebaseService.js";
+import { firestore } from "../services/firebaseService.js";
 import {
   mapMidtransToTransactionStatus,
   mapMidtransToPaymentStatus,
@@ -11,16 +11,36 @@ export const webhookController = async (req, res) => {
 
   const payload = req.body;
 
-  const orderId = payload.order_id;
+  const transactionId = payload.transaction_id;
   const transactionStatus = payload.transaction_status;
 
-  if (!orderId || !transactionStatus) {
+  if (!transactionId || !transactionStatus) {
     return res
       .status(400)
-      .json({ error: "Missing order_id or transaction_status" });
+      .json({ error: "Missing transaction_id or transaction_status" });
   }
 
   try {
+    const paymentSnap = await firestore
+      .collection("payment")
+      .where("midtrans_transaction_id", "==", transactionId)
+      .limit(1)
+      .get();
+
+    if (paymentSnap.empty) {
+      return res.status(404).json({ error: "Payment not found" });
+    }
+
+    const paymentDoc = paymentSnap.docs[0];
+    const paymentData = paymentDoc.data();
+    const orderId = paymentData.order_id;
+
+    await paymentDoc.ref.update({
+      payment_status: mapMidtransToPaymentStatus(transactionStatus),
+      payment_method: payload.payment_type ?? paymentData.payment_method,
+      response_json: payload,
+    });
+
     const orderRef = firestore.collection("order").doc(orderId);
     const orderDoc = await orderRef.get();
 
@@ -32,22 +52,6 @@ export const webhookController = async (req, res) => {
       order_status: mapMidtransToTransactionStatus(transactionStatus),
       payment_status: mapMidtransToPaymentStatus(transactionStatus),
     });
-
-    const paymentSnap = await firestore
-      .collection("payment")
-      .where("order_id", "==", orderId)
-      .limit(1)
-      .get();
-
-    if (!paymentSnap.empty) {
-      const paymentDoc = paymentSnap.docs[0];
-
-      await paymentDoc.ref.update({
-        payment_status: mapMidtransToPaymentStatus(transactionStatus),
-        midtrans_transaction_id: payload.transaction_id ?? null,
-        response_json: payload,
-      });
-    }
 
     return res.status(200).send("OK");
   } catch (err) {
