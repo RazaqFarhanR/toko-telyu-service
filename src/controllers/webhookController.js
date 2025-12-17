@@ -11,19 +11,19 @@ export const webhookController = async (req, res) => {
 
   const payload = req.body;
 
-  const transactionId = payload.transaction_id;
+  const orderId = payload.order_id;
   const transactionStatus = payload.transaction_status;
 
-  if (!transactionId || !transactionStatus) {
+  if (!orderId || !transactionStatus) {
     return res
       .status(400)
-      .json({ error: "Missing transaction_id or transaction_status" });
+      .json({ error: "Missing order_id or transaction_status" });
   }
 
   try {
     const paymentSnap = await firestore
       .collection("payment")
-      .where("midtrans_transaction_id", "==", transactionId)
+      .where("order_id", "==", orderId)
       .limit(1)
       .get();
 
@@ -33,7 +33,6 @@ export const webhookController = async (req, res) => {
 
     const paymentDoc = paymentSnap.docs[0];
     const paymentData = paymentDoc.data();
-    const orderId = paymentData.order_id;
 
     await paymentDoc.ref.update({
       payment_status: mapMidtransToPaymentStatus(transactionStatus),
