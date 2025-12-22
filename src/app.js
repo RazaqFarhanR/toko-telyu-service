@@ -18,6 +18,14 @@ app.use("/api/transaction", transactionRoutes);
 app.use("/api/webhook", webhookRoutes);
 app.use("/api/notifications", notifyRoutes);
 
+app.get("/api/notifications/test", (req, res) => {
+  res.json({ message: "Notifications route works!" });
+});
+
+app.get("/", (req, res) => {
+  res.json("Toko TELYU SERVICE");
+});
+
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
 
