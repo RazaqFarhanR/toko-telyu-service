@@ -1,20 +1,20 @@
 export const mapMidtransToTransactionStatus = (midtransStatus) => {
   switch (midtransStatus) {
     case "pending":
-      return "pending";
+      return "PENDING";
 
     case "capture":
     case "settlement":
-      return "pending"
+      return "PENDING"
 
     case "deny":
     case "cancel":
     case "expire":
     case "refund":
-      return "cancelled";
+      return "CANCELLED";
 
     default:
-      return "pending";
+      return "PENDING";
   }
 };
 
