@@ -3,7 +3,7 @@ import { notifyAdminsNewOrder, notifyOrderStatus } from "../controllers/notifica
 
 const router = express.Router();
 
-router.post('/order-status', notifyOrderStatus);
-router.post('/order-new', notifyAdminsNewOrder);
+router.post('/status', notifyOrderStatus);
+router.post('/new', notifyAdminsNewOrder);
 
 export default router;
